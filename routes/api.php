@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ListsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,4 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::get('/', function () {
-    return 'API';
-});
+Route::apiResource('lists', ListsController::class);
