@@ -3,9 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lists;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Gate;
 
+// Laravel 11
+// class ListsController extends Controller implements HasMiddleware {
 class ListsController extends Controller {
+    // Laravel 11
+    // public function middleware() {
+    //     return [new Middleware('auth:sanctum', except: ['index', 'show'])];
+    // }
+
+    public function __construct() {
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
+    }
+
+
     /**
      * Display a listing of the resource.
      */
@@ -19,14 +35,19 @@ class ListsController extends Controller {
      */
     public function store(Request $request) {
         //
-        $fields = $request->validate([
-            'title' => 'required|max:30',
-            'body' => 'required'
-        ]);
+        try {
 
-        $lists = Lists::create($fields);
+            $fields = $request->validate([
+                'title' => 'required|max:30',
+                'body' => 'required'
+            ]);
 
-        return ['Lists' => $lists];
+            $lists = $request->user()->lists()->create($fields);
+
+            return ['Lists' => $lists];
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     /**
@@ -42,6 +63,8 @@ class ListsController extends Controller {
      */
     public function update(Request $request, Lists $list) {
         //
+        Gate::authorize('modify', $list);
+
         $fields = $request->validate([
             'title' => 'required|max:30',
             'body' => 'required'
@@ -57,6 +80,8 @@ class ListsController extends Controller {
      */
     public function destroy(Lists $list) {
         //
+        Gate::authorize('modify', $list);
+
         $list->delete();
 
         return [
